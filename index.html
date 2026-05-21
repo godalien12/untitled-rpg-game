@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chronicles of the Void // RPG Core</title>
+    <style>
+        :root {
+            --neon-blue: #00d2ff;
+            --neon-red: #ff3b30;
+            --dark-bg: #090d16;
+            --text-color: #e2e8f0;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #game-container {
+            width: 85%;
+            max-width: 900px;
+            height: 80vh;
+            background-color: rgba(13, 20, 35, 0.95);
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 25px rgba(0, 210, 255, 0.25);
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            border-radius: 8px;
+        }
+
+        #stats-panel {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px dashed var(--neon-blue);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat { color: var(--neon-blue); }
+        .danger { color: var(--neon-red); }
+
+        #display-area {
+            flex-grow: 1;
+            overflow-y: auto;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            white-space: pre-line;
+            padding-right: 10px;
+        }
+
+        #choices-area {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .action-btn {
+            background: rgba(0, 210, 255, 0.05);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 12px 20px;
+            text-align: left;
+            font-family: inherit;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 4px;
+        }
+
+        .action-btn:hover {
+            background-color: var(--neon-blue);
+            color: var(--dark-bg);
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
+            font-weight: bold;
+        }
+
+        .combat-btn {
+            border-color: var(--neon-red);
+            color: var(--neon-red);
+            background: rgba(255, 59, 48, 0.05);
+        }
+
+        .combat-btn:hover {
+            background-color: var(--neon-red);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255, 59, 48, 0.4);
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="stats-panel">
+        <div>Player: <span id="char-name" class="stat">Lykos</span></div>
+        <div>HP: <span id="char-hp" class="stat">100/100</span></div>
+        <div>Focus: <span id="char-focus" class="stat">20/20</span></div>
+        <div>Inventory: <span id="char-inv" class="stat">Empty</span></div>
+    </div>
+    
+    <div id="display-area">Initializing RPG subsystem...</div>
+    
+    <div id="choices-area"></div>
+</div>
+
+<script>
+    // 1. GAME STATE & PLAYER STATS
+    const player = {
+        name: "Lykos",
+        hp: 100,
+        maxHp: 100,
+        focus: 20,
+        maxFocus: 20,
+        attackPower: 15,
+        inventory: ["Stamina Elixir"],
+        
+        // Helper functions
+        hasItem: function(item) { return this.inventory.includes(item); },
+        removeItem: function(item) {
+            const index = this.inventory.indexOf(item);
+            if (index > -1) this.inventory.splice(index, 1);
+        }
+    };
+
+    // Current active enemy storage
+    let currentEnemy = null;
+
+    // 2. THE WORLD STORY NODES
+    const worldMap = {
+        intro: {
+            text: "CHAPTER 1: THE ASHEN RIDGE\n\nThe wind howls across the jagged ruins of the lower canopy. You have been tracking a rogue signatures unit for cycles. Ahead, the path splits: a narrow, shadowed cavern descent, or an exposed high ridge path patrol route.",
+            choices: [
+                { text: "Descend into the dark cavern ruins.", nextNode: "cavern_entry" },
+                { text: "Scout along the high ridge trail.", nextNode: "ridge_combat_trigger" }
+            ]
+        },
+        cavern_entry: {
+            text: "The temperature drops instantly. Dripping condensation echoes through the darkness. Hidden inside a hollow structural pipe, you spot the unmistakable blue glint of an Overcharge Node!",
+            choices: [
+                { 
+                    text: "Extract the Overcharge Node.", 
+                    action: () => {
+                        player.inventory.push("Overcharge Node");
+                        logMessage("\n[+] Acquired: Overcharge Node!");
+                    },
+                    nextNode: "cavern_deeper" 
+                },
+                { text: "Ignore it and move deeper.", nextNode: "cavern_deeper" }
+            ]
+        },
+        cavern_deeper: {
+            text: "Suddenly, heavy thuds reverberate through the floor. A rogue Scrap Drone drops from the ceiling panels, its optical sensors glowing viciously red! It blocks the only exit.",
+            choices: [
+                { 
+                    text: "ENGAGE TARGET", 
+                    action: () => { startCombat("Scrap Drone", 60, 10, "cavern_victory"); } 
+                }
+            ]
+        },
+        ridge_combat_trigger: {
+            text: "As you step onto the rocky high ridge, a sudden mechanical screech pierces the wind. A wild Cyber-Viper launches itself from the metallic crags!",
+            choices: [
+                { 
+                    text: "ENTER COMBAT", 
+                    action: () => { startCombat("Cyber-Viper", 45, 14, "ridge_victory"); } 
+                }
+            ]
+        },
+        cavern_victory: {
+            text: "The Scrap Drone explodes in a brilliant shower of sparks. Exploring its chassis, you find a path leading out to the main highway. You managed to escape the darkness safely.",
+            choices: [] // End of demo chapter
+        },
+        ridge_victory: {
+            text: "With a final decisive strike, the Cyber-Viper deactivates and falls off the cliffside into the mist. The high path is secure, offering an unhindered view of the sprawling neon city below.",
+            choices: []
+        }
+    };
+
+    // 3. CORE RPG ENGINE ENGINE LOGIC
+    function refreshUI() {
+        document.getElementById("char-hp").innerText = `${player.hp}/${player.maxHp}`;
+        document.getElementById("char-focus").innerText = `${player.focus}/${player.maxFocus}`;
+        document.getElementById("char-inv").innerText = player.inventory.length > 0 ? player.inventory.join(", ") : "Empty";
+        
+        if (player.hp <= 0) {
+            document.getElementById("char-hp").classList.add("danger");
+        }
+    }
+
+    function logMessage(text) {
+        document.getElementById("display-area").innerText += text;
+        const display = document.getElementById("display-area");
+        display.scrollTop = display.scrollHeight; // Auto-scroll
+    }
+
+    function renderStory(nodeKey) {
+        const node = worldMap[nodeKey];
+        const display = document.getElementById("display-area");
+        const choicesArea = document.getElementById("choices-area");
+
+        display.innerText = node.text;
+        choicesArea.innerHTML = "";
+
+        if (node.choices.length === 0) {
+            logMessage("\n\n--- TO BE CONTINUED // SYSTEM LOCK ---");
+            return;
+        }
+
+        node.choices.forEach(choice => {
+            const btn = document.createElement("button");
+            btn.innerText = choice.text;
+            btn.classList.add("action-btn");
+            btn.addEventListener("click", () => {
+                if (choice.action) choice.action();
+                if (choice.nextNode) renderStory(choice.nextNode);
+            });
+            choicesArea.appendChild(btn);
+        });
+        refreshUI();
+    }
+
+    // 4. TURN-BASED COMBAT SUBSYSTEM
+    function startCombat(enemyName, enemyHp, enemyAtk, victoryNode) {
+        currentEnemy = { name: enemyName, hp: enemyHp, maxHp: enemyHp, attack: enemyAtk, winNode: victoryNode };
+        
+        const display = document.getElementById("display-area");
+        display.innerText = `⚠️ COMBAT INITIATED: ${currentEnemy.name} appears!\nEnemy HP: ${currentEnemy.hp}\n`;
+        
+        loopCombatTurn();
+    }
+
+    function loopCombatTurn() {
+        refreshUI();
+        const choicesArea = document.getElementById("choices-area");
+        choicesArea.innerHTML = "";
+
+        if (player.hp <= 0) {
+            logMessage("\n\n❌ CRITICAL FAILURE: Lykos has flatlined. Game Over.");
+            return;
+        }
+        if (currentEnemy.hp <= 0) {
+            logMessage(`\n\n✨ VICTORY: ${currentEnemy.name} was successfully dismantled!`);
+            
+            const advanceBtn = document.createElement("button");
+            advanceBtn.innerText = "Continue Journey";
+            advanceBtn.classList.add("action-btn");
+            advanceBtn.addEventListener("click", () => { renderStory(currentEnemy.winNode); });
+            choicesArea.appendChild(advanceBtn);
+            return;
+        }
+
+        // Action: Standard Strike
+        const strikeBtn = document.createElement("button");
+        strikeBtn.innerText = `⚔️ Strike Target (-${player.attackPower} HP)`;
+        strikeBtn.classList.add("action-btn", "combat-btn");
+        strikeBtn.addEventListener("click", () => { executeTurn("strike"); });
+        choicesArea.appendChild(strikeBtn);
+
+        // Action: Special Ability (Uses Focus)
+        const specBtn = document.createElement("button");
+        specBtn.innerText = `⚡ Neural Burst (-5 Focus / Massive DMG)`;
+        specBtn.classList.add("action-btn", "combat-btn");
+        specBtn.addEventListener("click", () => { executeTurn("special"); });
+        choicesArea.appendChild(specBtn);
+
+        // Action: Use Items if available
+        if (player.hasItem("Stamina Elixir")) {
+            const itemBtn = document.createElement("button");
+            itemBtn.innerText = "🧪 Use Stamina Elixir (+40 HP)";
+            itemBtn.classList.add("action-btn");
+            itemBtn.addEventListener("click", () => { executeTurn("item_elixir"); });
+            choicesArea.appendChild(itemBtn);
+        }
+    }
+
+    function executeTurn(playerAction) {
+        let playerDmg = 0;
+        let actionLog = "\n----------------------------------------";
+
+        // Player Turn phase
+        if (playerAction === "strike") {
+            playerDmg = player.attackPower + Math.floor(Math.random() * 6); // Add slight RNG variance
+            currentEnemy.hp -= playerDmg;
+            actionLog += `\n▶️ Lykos slashes the ${currentEnemy.name} dealing ${playerDmg} structural damage.`;
+        } else if (playerAction === "special") {
+            if (player.focus >= 5) {
+                player.focus -= 5;
+                playerDmg = player.attackPower * 2.5;
+                currentEnemy.hp -= playerDmg;
+                actionLog += `\n▶️ Lykos channels focus into a Neural Burst! Completely tearing down ${playerDmg} HP!`;
+            } else {
+                actionLog += `\n▶️ Focus too low! The skill misfired completely.`;
+            }
+        } else if (playerAction === "item_elixir") {
+            player.hp = Math.min(player.maxHp, player.hp + 40);
+            player.removeItem("Stamina Elixir");
+            actionLog += `\n▶️ Lykos consumes a Stamina Elixir, restoring 40 HP.`;
+        }
+
+        // Check if enemy survived to retaliate
+        if (currentEnemy.hp > 0) {
+            let enemyDmg = currentEnemy.attack + Math.floor(Math.random() * 4);
+            player.hp -= enemyDmg;
+            actionLog += `\n💥 The ${currentEnemy.name} counters, dealing ${enemyDmg} damage to your vital core.`;
+        }
+
+        actionLog += `\n\n[ Target Status: ${Math.max(0, currentEnemy.hp)} HP remaining ]`;
+        logMessage(actionLog);
+        
+        // Loop back to update status or handle wins/losses
+        setTimeout(loopCombatTurn, 100);
+    }
+
+    // Initialize first node on load
+    renderStory("intro");
+</script>
+
+</body>
+</html>
