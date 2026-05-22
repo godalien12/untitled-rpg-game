@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Void Summoner // Portal</title>
+    <title>Void Summoner // Cinematic Portal</title>
     <style>
         :root {
             --mythic: #ff3b30;
@@ -26,32 +26,6 @@
             perspective: 1000px;
         }
 
-        /* SCREEN ACTIONS */
-        .shake { animation: screenShake 0.4s infinite; }
-        .glitch { animation: uiGlitch 0.1s infinite; }
-        .darken { background-color: #000 !important; transition: background 0.3s ease; }
-
-        @keyframes screenShake {
-            0% { transform: translate(2px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(0px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(2px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(2px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
-        }
-
-        @keyframes uiGlitch {
-            0% { opacity: 0.9; transform: skewX(0deg); filter: hue-rotate(0deg); }
-            50% { opacity: 0.3; transform: skewX(5deg); filter: hue-rotate(90deg); }
-            100% { opacity: 0.9; transform: skewX(0deg); filter: hue-rotate(0deg); }
-        }
-
-        /* LAYOUT */
         #portal-container {
             width: 90%;
             max-width: 950px;
@@ -64,7 +38,7 @@
             border-radius: 12px;
             padding: 20px;
             position: relative;
-            transition: all 0.5s ease;
+            overflow: hidden;
         }
 
         #top-bar {
@@ -74,11 +48,11 @@
             padding-bottom: 15px;
             font-size: 0.9rem;
             letter-spacing: 1px;
+            z-index: 5;
         }
 
         .currency { color: #ffd700; font-weight: bold; }
 
-        /* THE DISPLAY MANIFESTATION STAGE */
         #display-stage {
             flex-grow: 1;
             display: flex;
@@ -87,30 +61,20 @@
             align-items: center;
             position: relative;
             margin: 20px 0;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0,0,0,0.6);
             border-radius: 8px;
-            border: 1px dashed #1e293b;
+            border: 1px solid #1e293b;
             padding: 20px;
             text-align: center;
-        }
-
-        /* SPECIAL EFFECT OVERLAYS */
-        #fx-overlay {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 5rem;
-            z-index: 10;
+            overflow: hidden;
         }
 
         #hero-card {
             max-width: 600px;
-            opacity: 1;
-            transition: opacity 0.2s ease;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 4;
         }
 
         .rarity-badge {
@@ -124,7 +88,7 @@
             margin-bottom: 15px;
         }
 
-        .name-txt { font-size: 2.2rem; font-weight: bold; margin: 5px 0; text-shadow: 0 0 10px rgba(255,255,255,0.1); }
+        .name-txt { font-size: 2.2rem; font-weight: bold; margin: 5px 0; }
         .title-txt { font-size: 1.1rem; color: #94a3b8; font-style: italic; margin-bottom: 20px; }
         
         .spin-box { 
@@ -134,7 +98,6 @@
             margin: 15px 0; 
             font-size: 0.95rem;
             text-align: left;
-            line-height: 1.4;
         }
         
         .playstyle-box {
@@ -143,16 +106,13 @@
             border-radius: 6px;
             font-size: 0.9rem;
             text-align: left;
-            line-height: 1.5;
             border: 1px solid #1e293b;
         }
 
-        /* CONTROLS */
         #control-panel {
             display: flex;
             justify-content: center;
-            gap: 20px;
-            padding-top: 10px;
+            z-index: 5;
         }
 
         .summon-btn {
@@ -175,11 +135,126 @@
             border-color: #ffd700;
         }
 
-        .summon-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: #1e293b;
-            color: #64748b;
+        /* ==========================================================================
+           ADVANCED CINEMATIC GRAPHICS ENGINES (CSS KEYFRAMES)
+           ========================================================================== */
+        
+        /* SCREEN ACTION INTERFACES */
+        .fx-shake { animation: masterShake 0.4s infinite; }
+        .fx-glitch { animation: masterGlitch 0.15s infinite; }
+        
+        @keyframes masterShake {
+            0% { transform: translate(3px, 2px) rotate(0deg); }
+            20% { transform: translate(-3px, -1px) rotate(-1deg); }
+            40% { transform: translate(-1px, -2px) rotate(1deg); }
+            60% { transform: translate(2px, 2px) rotate(0deg); }
+            80% { transform: translate(-2px, 1px) rotate(-1deg); }
+            100% { transform: translate(1px, -1px) rotate(1deg); }
+        }
+
+        @keyframes masterGlitch {
+            0% { transform: skew(0deg); filter: hue-rotate(0deg) contrast(1); }
+            20% { transform: skew(4deg) translate(5px, -2px); filter: hue-rotate(90deg) contrast(1.5); }
+            40% { transform: skew(-3deg); filter: invert(0.1); }
+            60% { transform: skew(1deg) translate(-5px, 2px); filter: hue-rotate(180deg); }
+            80% { transform: skew(-5deg); opacity: 0.7; }
+            100% { transform: skew(0deg); filter: hue-rotate(360deg); }
+        }
+
+        /* DYNAMIC EFFECT ELEMENT LAYERS */
+        .vfx-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* 1. PRIME PLETH: GOLDEN BLACK HOLE RING */
+        .blackhole-ring {
+            width: 10px; height: 10px;
+            border: 4px solid #ffd700;
+            border-radius: 50%;
+            box-shadow: 0 0 40px #ff3b30, inset 0 0 40px #000;
+            background: #000;
+            animation: blackholeExpand 1.5s forwards cubic-bezier(0.075, 0.82, 0.165, 1);
+        }
+        @keyframes blackholeExpand {
+            0% { transform: scale(1); opacity: 0; border-width: 20px; }
+            30% { opacity: 1; }
+            60% { transform: scale(40); border-width: 2px; background: rgba(0,0,0,0.9); }
+            100% { transform: scale(80); opacity: 0; }
+        }
+
+        /* 2. THE MASKED LEADER: SHADOW CLAWD SLASHES */
+        .shadow-slash {
+            position: absolute;
+            width: 150%; height: 20px;
+            background: linear-gradient(90deg, transparent, #000, #ff3b30, #000, transparent);
+            transform: rotate(-35deg) translateY(-300px);
+            box-shadow: 0 0 20px #ff3b30;
+            animation: slashCut 0.4s forwards ease-in-out;
+        }
+        .slash-2 { transform: rotate(45deg) translateY(300px); animation-delay: 0.15s; }
+        @keyframes slashCut {
+            0% { transform: rotate(-35deg) translate(-100%, -200px); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: rotate(-35deg) translate(100%, 200px); opacity: 0; }
+        }
+
+        /* 3. OSIRIS: GOLDEN SCALES TIME SLOW */
+        .time-slow-wave {
+            width: 100%; height: 100%;
+            background: rgba(255, 215, 0, 0.15);
+            filter: sepia(1) blur(2px);
+            animation: timeWarp 2s forwards ease-out;
+        }
+        @keyframes timeWarp {
+            0% { opacity: 0; filter: blur(20px) sepia(1); }
+            20% { opacity: 1; filter: blur(0px) sepia(1); }
+            80% { opacity: 1; filter: blur(0px) sepia(0.5); }
+            100% { opacity: 0; filter: blur(10px) sepia(0); }
+        }
+
+        /* 4. MALAKOR: DEATH SCythe SWEEP */
+        .scythe-sweep {
+            width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 30%, #222 50%, #000 70%);
+            animation: scytheCleave 0.8s forwards ease-out;
+        }
+        @keyframes scytheCleave {
+            0% { transform: scale(0.1) rotate(0deg); opacity: 0; }
+            50% { opacity: 0.9; }
+            100% { transform: scale(3) rotate(180deg); opacity: 0; }
+        }
+
+        /* 5. LYKOS: LIGHT ABSORPTION DARKNESS */
+        .light-snatch {
+            width: 100%; height: 100%;
+            background: #000;
+            animation: absoluteDark 1.4s forwards ease-in-out;
+        }
+        @keyframes absoluteDark {
+            0% { opacity: 0; }
+            30% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* GENERAL FLASH OVERLAYS FOR HIGH TIERS */
+        .tier-flash {
+            position: absolute;
+            width: 100%; height: 100%;
+            z-index: 3;
+            pointer-events: none;
+            animation: flashBurst 0.5s forwards ease-out;
+        }
+        @keyframes flashBurst {
+            0% { background: #fff; opacity: 1; }
+            100% { background: transparent; opacity: 0; }
         }
     </style>
 </head>
@@ -187,17 +262,19 @@
 
 <div id="portal-container">
     <div id="top-bar">
-        <div>SUMMON GATEWAY // READY</div>
+        <div>CONVERGENCE GATEWAY // AUDIO-VISUAL CORE ONLINE</div>
         <div>Crystals: <span id="crystal-count" class="currency">2,500</span></div>
-        <div>Pity Tracker: <span id="pity-count" style="color: #ffaa00;">0/50</span></div>
+        <div>Pity: <span id="pity-count" style="color: #ffaa00;">0/50</span></div>
     </div>
 
     <div id="display-stage">
-        <div id="fx-overlay"></div>
+        <!-- Renders graphical animation structures here dynamically -->
+        <div id="vfx-container" class="vfx-layer"></div>
+        
         <div id="hero-card">
             <div style="font-size: 4rem; margin-bottom: 20px;">🌌</div>
-            <div class="name-txt">The Void Awaits</div>
-            <div class="title-txt">Spend 50 Crystals to interface with the timeline.</div>
+            <div class="name-txt">The Gate is Sealed</div>
+            <div class="title-txt">Interface with the terminal to summon your roster units.</div>
         </div>
     </div>
 
@@ -207,7 +284,6 @@
 </div>
 
 <script>
-    // THE MANIFEST STRUCTURE DATA
     const masterRoster = {
         mythic: [
             { name: "Prime Pleth", title: "The Unbound Successor", rank: 1, spin: "Slouched in his hoodie chewing a popsicle; when selected, the screen violently shakes, a massive golden black hole ring flares, and black roses explode from the floor.", playstyle: "Gravity Juggernaut / Map Control. Manipulates physics to drag all enemies on screen toward him, crushing them with planet-tier gravity fields while blooming black roses that life-steal over time.", fx: "blackhole" },
@@ -217,32 +293,19 @@
         ],
         legendary: [
             { name: "Lykos", title: "The Traitor’s Edge", rank: 5, spin: "Tossing a twin-pronged dagger in the dark. Selected: steps into the light with a cold, bored stare and draws a blade that absorbs all ambient light.", playstyle: "Shadow Assassin / Burst Damage. High-speed teleportation. He marks targets from the shadows, jumps directly behind them, and unloads massive critical-strike burst damage before slipping away.", fx: "darkness" },
-            { name: "Nix", title: "The Underworld Vanguard", rank: 6, spin: "Pleth’s older sibling sitting on a floating throne of dark stone. Selected: steps off, unleashing a wave of freezing blue underworld flame.", playstyle: "Elemental Mage / Crowd Control. Fires tracking waves of blue underworld fire that leaves a freezing trail on the ground, slowing enemy movement down to an absolute crawl.", fx: "bluefire" },
-            { name: "Vane", title: "The Iron Headmaster", rank: 7, spin: "Stiffly standing in a formal academy coat with eyes closed. Selected: opens his glowing eyes, snapping ancient runic barriers into existence.", playstyle: "Defensive Tactician / Buffer. Drops stationary runic fields that block all enemy projectiles while boosting the attack power and defense stats of any ally standing inside them.", fx: "runes" },
-            { name: "Erebus", title: "The Shadow General", rank: 8, spin: "A mass of shifting, liquid shadows that instantly hardens into heavy dark plate armor when selected, drawing twin obsidian maces.", playstyle: "Berserker / Vanguard. A heavy brawler who loses defense armor as his health drops, but gains massive attack speed and raw damage the closer he gets to dying.", fx: "shadows" },
-            { name: "Zephyr", title: "The Void Horizon", rank: 9, spin: "A legendary space-time wanderer cloaked in tattered cosmic wraps. Selected: taps his staff, causing the background stars to warp and pull toward him.", playstyle: "Mobility Skirmisher / Teleporter. Can open mini-wormholes on the field to instantaneously reposition your entire party, dodging ultimate attacks effortlessly.", fx: "warp" },
-            { name: "Selene", title: "The Eclipse Empress", rank: 10, spin: "Levitating with a crescent blade floating behind her back. Selected: her eyes turn solid black, and a total solar eclipse darkens the screen.", playstyle: "Debuffer / Blindness. Blinds the enemy team by plunging the battlefield into an eclipse, causing their attacks to miss while she lands un-dodgeable tracking strikes.", fx: "eclipse" }
+            { name: "Nix", title: "The Underworld Vanguard", rank: 6, spin: "Pleth’s older sibling sitting on a floating throne of dark stone. Selected: steps off, unleashing a wave of freezing blue underworld flame.", playstyle: "Elemental Mage / Crowd Control. Fires tracking waves of blue underworld fire that leaves a freezing trail on the ground, slowing enemy movement down to an absolute crawl.", fx: "bluefire" }
         ],
         epic: [
             { name: "Sterling", title: "The Ruby-Tier Gilt", rank: 11, spin: "Flexing in flawless white-and-gold armor. Selected: draws a glowing rapier and strikes an arrogant, stiff fencing salute.", playstyle: "Precision Duelist / Counter-Striker. Relies on perfectly-timed parries. When he successfully blocks an attack, he unleashes a lightning-fast rapier combo that breaks enemy shields.", fx: "flash" },
-            { name: "Kora", title: "The Unbroken Aegis", rank: 12, spin: "Leaning on the hilt of a massive iron greatsword buried in the dirt. Selected: hoists it onto her shoulders with a fierce, ready-to-scrap smirk.", playstyle: "Frontline Tank / Disrupter. Absorbs massive punishment using hyper-armor frames. She slams her greatsword into the earth to cause AOE knockbacks, keeping enemies off your squishy mages.", fx: "impact" },
-            { name: "Valen", title: "The Paragon Senior", rank: 13, spin: "Doing one-handed pushups before flipping up. Selected: wraps his fists in a glowing aura and takes a textbook martial arts stance.", playstyle: "Combo Striker / Brawler. High-speed, fluid martial arts. He chains punches and kicks together to build up a combo meter, unleashing a devastating aura-blast at max stacks.", fx: "aura" },
-            { name: "Jaxon", title: "The Rogue Mercenary", rank: 14, spin: "Sitting on an ammo crate cleaning a high-tech rifle. Selected: stands up and aims it right at the screen with a wild, lawless grin.", playstyle: "Long-Range Marksman / Sniper. Keeps his distance at the back of the map, dealing heavy single-target damage with a high-velocity rifle and dropping explosive landmines to stop rushdown enemies.", fx: "crosshair" },
-            { name: "Orion", title: "The Star-Forged Blacksmith", rank: 15, spin: "Hammering a glowing piece of cosmic ore on an anvil. Selected: lifts a heavy, burning magma hammer and slams it down, sending sparks flying.", playstyle: "Item Enchanter / Fire Bruiser. Slams his burning magma hammer down to deal fire damage while permanently upgrading his teammates' weapons mid-battle.", fx: "sparks" },
-            { name: "Lyra", title: "The Sound-Wave Siren", rank: 16, spin: "Floating gently while tuning a crystal harp. Selected: strikes a chord that sends a visible, destructive kinetic shockwave ripping across the grass.", playstyle: "Kinetic Zoner / Healer. Uses musical soundwaves to push enemies away from her while simultaneously pulse-healing her allies with every rhythm chord struck.", fx: "wave" }
+            { name: "Kora", title: "The Unbroken Aegis", rank: 12, spin: "Leaning on the hilt of a massive iron greatsword buried in the dirt. Selected: hoists it onto her shoulders with a fierce, ready-to-scrap smirk.", playstyle: "Frontline Tank / Disrupter. Absorbs massive punishment using hyper-armor frames. She slams her greatsword into the earth to cause AOE knockbacks, keeping enemies off your squishy mages.", fx: "flash" }
         ],
         rare: [
-            { name: "Leo", title: "The Eager Vanguard", rank: 17, spin: "Pleth's number-one fan trying way too hard to mimic his stance. Selected: accidentally trips over his own wooden practice sword but scrambles up quickly.", playstyle: "Basic Balanced Attacker. Standard, easy-to-learn sword combos. Good for beginners, with balanced attack and defense stats but no crazy supernatural perks.", fx: "none" },
-            { name: "Iris", title: "The Sparks of the Future", rank: 18, spin: "The young academy girl looking around nervously. Selected: squares her shoulders, pulls out a practice dagger, and takes a low-gravity stance.", playstyle: "Evasion / Speed Scout. Low damage per hit, but boasts incredibly fast movement speed. Perfect for running around traps and quickly dodging lethal boss attacks.", fx: "none" },
-            { name: "Toby", title: "The Clumsy Squire", rank: 19, spin: "Carrying a massive bundle of practice gear and popsicle sticks. Selected: drops half of them, salutes awkwardly, and draws a short-sword.", playstyle: "RNG Support / Utility. Clumsily throws items at random. He might accidentally drop a healing popsicle for your team, or trip and hurl a smoke bomb that confuses the enemy.", fx: "none" },
-            { name: "Shade", title: "The Rogue Grunt", rank: 20, spin: "A low-level shadow scout hiding under a dark hood. Selected: pulls out two basic iron daggers, his red eyes glowing faintly from the darkness.", playstyle: "Basic Dual-Wielder. Fast, low-damage dagger slashes. Weak health pool, but builds up a fast attack rhythm to clear out weak enemy minions.", fx: "none" }
+            { name: "Leo", title: "The Eager Vanguard", rank: 17, spin: "Pleth's number-one fan trying way too hard to mimic his stance. Selected: accidentally trips over his own wooden practice sword but scrambles up quickly.", playstyle: "Basic Balanced Attacker. Standard, easy-to-learn sword combos.", fx: "none" },
+            { name: "Toby", title: "The Clumsy Squire", rank: 19, spin: "Carrying a massive bundle of practice gear and popsicle sticks. Selected: drops half of them, salutes awkwardly, and draws a short-sword.", playstyle: "RNG Support / Utility.", fx: "none" }
         ]
     };
 
-    let userState = {
-        crystals: 2500,
-        pity: 0
-    };
+    let userState = { crystals: 2500, pity: 0 };
 
     function triggerSummon() {
         if (userState.crystals < 50) return;
@@ -253,89 +316,98 @@
         document.getElementById("pity-count").innerText = `${userState.pity}/50`;
 
         const rollBtn = document.getElementById("roll-btn");
-        rollBtn.disabled = true;
-
-        // Clear previous visual states completely
         const container = document.getElementById("portal-container");
-        const stage = document.getElementById("display-stage");
-        const fxOverlay = document.getElementById("fx-overlay");
+        const vfxContainer = document.getElementById("vfx-container");
         const card = document.getElementById("hero-card");
         
-        container.className = "";
-        stage.className = "";
-        fxOverlay.innerText = "";
+        rollBtn.disabled = true;
         card.style.opacity = "0";
+        card.style.transform = "scale(0.8)";
+        
+        // Wipe styles completely
+        container.className = "";
+        vfxContainer.innerHTML = "";
 
-        // Determine Rarity Block
+        // Core Random Generation Percentile Check
         let chosenRarity = "rare";
         const diceRoll = Math.random() * 100;
 
-        // 50-pull Hard Pity check for safety
         if (userState.pity >= 50) {
             chosenRarity = "mythic";
             userState.pity = 0;
         } else if (diceRoll <= 0.5) {
             chosenRarity = "mythic";
             userState.pity = 0; 
-        } else if (diceRoll <= 3.0) { // 0.5 + 2.5
+        } else if (diceRoll <= 3.0) {
             chosenRarity = "legendary";
-        } else if (diceRoll <= 15.0) { // 3.0 + 12.0
+        } else if (diceRoll <= 15.0) {
             chosenRarity = "epic";
         }
 
-        // Pull entity from database
-        const targetPool = masterRoster[chosenRarity];
-        const character = targetPool[Math.floor(Math.random() * targetPool.length)];
+        const pool = masterRoster[chosenRarity];
+        const character = pool[Math.floor(Math.random() * pool.length)];
 
-        // Run Cinematic Presentation Sequence
+        // Run Engine Graphics Dispatcher
+        executeCinematics(character.fx, container, vfxContainer);
+
+        // Bring the character manifest frame into sight after the blast clears
         setTimeout(() => {
-            renderCinematicFX(character.fx, container, fxOverlay);
-            
-            // Render the text metrics onto card UI
             card.innerHTML = `
-                <span class="rarity-badge" style="background-color: var(--${chosenRarity}); color: #000;">${chosenRarity} (Rank #${character.rank})</span>
+                <span class="rarity-badge" style="background-color: var(--${chosenRarity}); color: #000;">${chosenRarity} // Rank #${character.rank}</span>
                 <div class="name-txt" style="color: var(--${chosenRarity})">${character.name}</div>
                 <div class="title-txt">"${character.title}"</div>
-                <div class="spin-box"><strong>The Spin:</strong> ${character.spin}</div>
-                <div class="playstyle-box"><strong>Playstyle Strategy:</strong> ${character.playstyle}</div>
+                <div class="spin-box"><strong>The Spin Presentation:</strong> ${character.spin}</div>
+                <div class="playstyle-box"><strong>Combat Strategy:</strong> ${character.playstyle}</div>
             `;
             card.style.opacity = "1";
+            card.style.transform = "scale(1)";
             rollBtn.disabled = false;
-        }, 600);
+        }, 1000);
     }
 
-    function renderCinematicFX(fxType, container, overlay) {
-        if (fxType === "blackhole") {
-            container.classList.add("shake");
-            overlay.innerText = "🌌🌀🌹";
-            setTimeout(() => container.classList.remove("shake"), 1200);
-        } else if (fxType === "glitch") {
-            container.classList.add("glitch");
-            overlay.innerText = "👁️⛓️💀";
-            setTimeout(() => container.classList.remove("glitch"), 1000);
-        } else if (fxType === "timeslow") {
-            overlay.innerText = "⏳⚖️✨";
-            document.getElementById("display-stage").style.transition = "all 2s ease";
-            document.getElementById("display-stage").style.filter = "sepia(0.8) contrast(1.2)";
-            setTimeout(() => { document.getElementById("display-stage").style.filter = "none"; }, 2000);
-        } else if (fxType === "scythe") {
-            container.classList.add("shake");
-            overlay.innerText = "⚔️🥀💀";
-            setTimeout(() => container.classList.remove("shake"), 600);
-        } else if (fxType === "darkness" || fxType === "eclipse") {
-            container.classList.add("darken");
-            overlay.innerText = "🌒🗡️👁️";
-            setTimeout(() => container.classList.remove("darken"), 1500);
-        } else if (fxType === "bluefire") {
-            overlay.innerText = "🔥🔷❄️";
-        } else if (fxType === "runes") {
-            overlay.innerText = "🛡️🔱💠";
-        } else if (fxType === "warp") {
-            overlay.innerText = "🌀💫🌌";
-        } else if (fxType === "flash" || fxType === "aura" || fxType === "impact") {
-            overlay.innerText = "⚡🌟👊";
-        } else if (fxType === "crosshair" || fxType === "sparks" || fxType === "wave") {
-            overlay.innerText = "🎯🔨🎵";
+    function executeCinematics(fx, container, vfx) {
+        // High Tier Shock Flash
+        if (fx !== "none") {
+            const flash = document.createElement("div");
+            flash.classList.add("tier-flash");
+            document.getElementById("display-stage").appendChild(flash);
+            setTimeout(() => flash.remove(), 500);
+        }
+
+        // Specific Lore Profiles Dispatcher
+        if (fx === "blackhole") {
+            container.classList.add("fx-shake");
+            const element = document.createElement("div");
+            element.classList.add("blackhole-ring");
+            vfx.appendChild(element);
+            setTimeout(() => container.classList.remove("fx-shake"), 1500);
+            
+        } else if (fx === "glitch") {
+            container.classList.add("fx-glitch");
+            const slash1 = document.createElement("div");
+            slash1.classList.add("shadow-slash");
+            const slash2 = document.createElement("div");
+            slash2.classList.add("shadow-slash", "slash-2");
+            vfx.appendChild(slash1);
+            vfx.appendChild(slash2);
+            setTimeout(() => container.classList.remove("fx-glitch"), 1200);
+            
+        } else if (fx === "timeslow") {
+            const element = document.createElement("div");
+            element.classList.add("time-slow-wave");
+            vfx.appendChild(element);
+            
+        } else if (fx === "scythe") {
+            container.classList.add("fx-shake");
+            const element = document.createElement("div");
+            element.classList.add("scythe-sweep");
+            vfx.appendChild(element);
+            setTimeout(() => container.classList.remove("fx-shake"), 800);
+            
+        } else if (fx === "darkness") {
+            const element = document.createElement("div");
+            element.classList.add("light-snatch");
+            vfx.appendChild(element);
         }
     }
 </script>
