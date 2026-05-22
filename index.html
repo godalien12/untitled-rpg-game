@@ -3,329 +3,341 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronicles of the Void // RPG Core</title>
+    <title>Void Summoner // Portal</title>
     <style>
         :root {
-            --neon-blue: #00d2ff;
-            --neon-red: #ff3b30;
-            --dark-bg: #090d16;
-            --text-color: #e2e8f0;
+            --mythic: #ff3b30;
+            --legendary: #00d2ff;
+            --epic: #af52de;
+            --rare: #34c759;
+            --dark-bg: #05070a;
         }
 
         body {
             background-color: var(--dark-bg);
-            color: var(--text-color);
+            color: #e2e8f0;
             font-family: 'Courier New', Courier, monospace;
+            margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
+            overflow: hidden;
+            perspective: 1000px;
         }
 
-        #game-container {
-            width: 85%;
-            max-width: 900px;
-            height: 80vh;
-            background-color: rgba(13, 20, 35, 0.95);
-            border: 2px solid var(--neon-blue);
-            box-shadow: 0 0 25px rgba(0, 210, 255, 0.25);
-            padding: 25px;
+        /* SCREEN ACTIONS */
+        .shake { animation: screenShake 0.4s infinite; }
+        .glitch { animation: uiGlitch 0.1s infinite; }
+        .darken { background-color: #000 !important; transition: background 0.3s ease; }
+
+        @keyframes screenShake {
+            0% { transform: translate(2px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(0px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(2px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(2px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        @keyframes uiGlitch {
+            0% { opacity: 0.9; transform: skewX(0deg); filter: hue-rotate(0deg); }
+            50% { opacity: 0.3; transform: skewX(5deg); filter: hue-rotate(90deg); }
+            100% { opacity: 0.9; transform: skewX(0deg); filter: hue-rotate(0deg); }
+        }
+
+        /* LAYOUT */
+        #portal-container {
+            width: 90%;
+            max-width: 950px;
+            height: 85vh;
+            background: linear-gradient(145deg, #0b0f19, #070a10);
+            border: 2px solid #1e293b;
+            box-shadow: 0 0 30px rgba(0,0,0,0.7);
             display: flex;
             flex-direction: column;
-            border-radius: 8px;
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            transition: all 0.5s ease;
         }
 
-        #stats-panel {
+        #top-bar {
             display: flex;
             justify-content: space-between;
-            border-bottom: 2px dashed var(--neon-blue);
+            border-bottom: 1px solid #1e293b;
             padding-bottom: 15px;
-            margin-bottom: 20px;
-            font-size: 0.95rem;
-            text-transform: uppercase;
+            font-size: 0.9rem;
             letter-spacing: 1px;
         }
 
-        .stat { color: var(--neon-blue); }
-        .danger { color: var(--neon-red); }
+        .currency { color: #ffd700; font-weight: bold; }
 
-        #display-area {
+        /* THE DISPLAY MANIFESTATION STAGE */
+        #display-stage {
             flex-grow: 1;
-            overflow-y: auto;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            white-space: pre-line;
-            padding-right: 10px;
-        }
-
-        #choices-area {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin: 20px 0;
+            background: rgba(0,0,0,0.4);
+            border-radius: 8px;
+            border: 1px dashed #1e293b;
+            padding: 20px;
+            text-align: center;
         }
 
-        .action-btn {
-            background: rgba(0, 210, 255, 0.05);
-            border: 1px solid var(--neon-blue);
-            color: var(--neon-blue);
-            padding: 12px 20px;
-            text-align: left;
-            font-family: inherit;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border-radius: 4px;
+        /* SPECIAL EFFECT OVERLAYS */
+        #fx-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            z-index: 10;
         }
 
-        .action-btn:hover {
-            background-color: var(--neon-blue);
-            color: var(--dark-bg);
-            box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
+        #hero-card {
+            max-width: 600px;
+            opacity: 1;
+            transition: opacity 0.2s ease;
+        }
+
+        .rarity-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
             font-weight: bold;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
         }
 
-        .combat-btn {
-            border-color: var(--neon-red);
-            color: var(--neon-red);
-            background: rgba(255, 59, 48, 0.05);
+        .name-txt { font-size: 2.2rem; font-weight: bold; margin: 5px 0; text-shadow: 0 0 10px rgba(255,255,255,0.1); }
+        .title-txt { font-size: 1.1rem; color: #94a3b8; font-style: italic; margin-bottom: 20px; }
+        
+        .spin-box { 
+            background: rgba(255,255,255,0.03); 
+            border-left: 3px solid #64748b; 
+            padding: 12px; 
+            margin: 15px 0; 
+            font-size: 0.95rem;
+            text-align: left;
+            line-height: 1.4;
+        }
+        
+        .playstyle-box {
+            background: rgba(0,0,0,0.5);
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            text-align: left;
+            line-height: 1.5;
+            border: 1px solid #1e293b;
         }
 
-        .combat-btn:hover {
-            background-color: var(--neon-red);
-            color: #fff;
-            box-shadow: 0 0 15px rgba(255, 59, 48, 0.4);
+        /* CONTROLS */
+        #control-panel {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding-top: 10px;
         }
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 3px; }
+        .summon-btn {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid #334155;
+            color: #f8fafc;
+            padding: 15px 35px;
+            font-family: inherit;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .summon-btn:hover {
+            background: #ffd700;
+            color: #000;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+            border-color: #ffd700;
+        }
+
+        .summon-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #1e293b;
+            color: #64748b;
+        }
     </style>
 </head>
 <body>
 
-<div id="game-container">
-    <div id="stats-panel">
-        <div>Player: <span id="char-name" class="stat">Lykos</span></div>
-        <div>HP: <span id="char-hp" class="stat">100/100</span></div>
-        <div>Focus: <span id="char-focus" class="stat">20/20</span></div>
-        <div>Inventory: <span id="char-inv" class="stat">Empty</span></div>
+<div id="portal-container">
+    <div id="top-bar">
+        <div>SUMMON GATEWAY // READY</div>
+        <div>Crystals: <span id="crystal-count" class="currency">2,500</span></div>
+        <div>Pity Tracker: <span id="pity-count" style="color: #ffaa00;">0/50</span></div>
     </div>
-    
-    <div id="display-area">Initializing RPG subsystem...</div>
-    
-    <div id="choices-area"></div>
+
+    <div id="display-stage">
+        <div id="fx-overlay"></div>
+        <div id="hero-card">
+            <div style="font-size: 4rem; margin-bottom: 20px;">🌌</div>
+            <div class="name-txt">The Void Awaits</div>
+            <div class="title-txt">Spend 50 Crystals to interface with the timeline.</div>
+        </div>
+    </div>
+
+    <div id="control-panel">
+        <button class="summon-btn" id="roll-btn" onclick="triggerSummon()">CONVERGE TIMELINE (-50 Crystals)</button>
+    </div>
 </div>
 
 <script>
-    // 1. GAME STATE & PLAYER STATS
-    const player = {
-        name: "Lykos",
-        hp: 100,
-        maxHp: 100,
-        focus: 20,
-        maxFocus: 20,
-        attackPower: 15,
-        inventory: ["Stamina Elixir"],
-        
-        // Helper functions
-        hasItem: function(item) { return this.inventory.includes(item); },
-        removeItem: function(item) {
-            const index = this.inventory.indexOf(item);
-            if (index > -1) this.inventory.splice(index, 1);
-        }
+    // THE MANIFEST STRUCTURE DATA
+    const masterRoster = {
+        mythic: [
+            { name: "Prime Pleth", title: "The Unbound Successor", rank: 1, spin: "Slouched in his hoodie chewing a popsicle; when selected, the screen violently shakes, a massive golden black hole ring flares, and black roses explode from the floor.", playstyle: "Gravity Juggernaut / Map Control. Manipulates physics to drag all enemies on screen toward him, crushing them with planet-tier gravity fields while blooming black roses that life-steal over time.", fx: "blackhole" },
+            { name: "The Masked Leader", title: "The Void Tyrant", rank: 2, spin: "Hovering in a vortex of liquid ash, his cracked porcelain mask bleeding dark energy. When selected, shadow claws slash the screen, glitching the UI.", playstyle: "Void Sorcerer / Health Drain. Sets up shadow traps that root enemies in place. He inflicts high damage-over-time and absorbs the enemy's HP bar to fuel his desperate, high-damage final strikes.", fx: "glitch" },
+            { name: "Osiris", title: "The Ancient Arbitrator", rank: 3, spin: "A legendary blind deity floating cross-legged between glowing golden scales. When selected, the scales tilt, and time visually slows down on screen.", playstyle: "Reality-Warper / Support. Can literally pause or slow down the game clock for enemies, reverse recent damage taken by allies, or swap his team's debuffs onto the opposing squad.", fx: "timeslow" },
+            { name: "Malakor", title: "The Death God's Left Hand", rank: 4, spin: "A towering skeletal figure in bone armor. When selected, he slams a massive scythe down, causing pitch-black roses to bloom and wither instantly.", playstyle: "Execute / Long-Range Bruiser. Cleaves through multiple enemies at once with a massive scythe. Deals extra execution damage to enemies below 30% health and revives fallen allies as shadow skeletons.", fx: "scythe" }
+        ],
+        legendary: [
+            { name: "Lykos", title: "The Traitor’s Edge", rank: 5, spin: "Tossing a twin-pronged dagger in the dark. Selected: steps into the light with a cold, bored stare and draws a blade that absorbs all ambient light.", playstyle: "Shadow Assassin / Burst Damage. High-speed teleportation. He marks targets from the shadows, jumps directly behind them, and unloads massive critical-strike burst damage before slipping away.", fx: "darkness" },
+            { name: "Nix", title: "The Underworld Vanguard", rank: 6, spin: "Pleth’s older sibling sitting on a floating throne of dark stone. Selected: steps off, unleashing a wave of freezing blue underworld flame.", playstyle: "Elemental Mage / Crowd Control. Fires tracking waves of blue underworld fire that leaves a freezing trail on the ground, slowing enemy movement down to an absolute crawl.", fx: "bluefire" },
+            { name: "Vane", title: "The Iron Headmaster", rank: 7, spin: "Stiffly standing in a formal academy coat with eyes closed. Selected: opens his glowing eyes, snapping ancient runic barriers into existence.", playstyle: "Defensive Tactician / Buffer. Drops stationary runic fields that block all enemy projectiles while boosting the attack power and defense stats of any ally standing inside them.", fx: "runes" },
+            { name: "Erebus", title: "The Shadow General", rank: 8, spin: "A mass of shifting, liquid shadows that instantly hardens into heavy dark plate armor when selected, drawing twin obsidian maces.", playstyle: "Berserker / Vanguard. A heavy brawler who loses defense armor as his health drops, but gains massive attack speed and raw damage the closer he gets to dying.", fx: "shadows" },
+            { name: "Zephyr", title: "The Void Horizon", rank: 9, spin: "A legendary space-time wanderer cloaked in tattered cosmic wraps. Selected: taps his staff, causing the background stars to warp and pull toward him.", playstyle: "Mobility Skirmisher / Teleporter. Can open mini-wormholes on the field to instantaneously reposition your entire party, dodging ultimate attacks effortlessly.", fx: "warp" },
+            { name: "Selene", title: "The Eclipse Empress", rank: 10, spin: "Levitating with a crescent blade floating behind her back. Selected: her eyes turn solid black, and a total solar eclipse darkens the screen.", playstyle: "Debuffer / Blindness. Blinds the enemy team by plunging the battlefield into an eclipse, causing their attacks to miss while she lands un-dodgeable tracking strikes.", fx: "eclipse" }
+        ],
+        epic: [
+            { name: "Sterling", title: "The Ruby-Tier Gilt", rank: 11, spin: "Flexing in flawless white-and-gold armor. Selected: draws a glowing rapier and strikes an arrogant, stiff fencing salute.", playstyle: "Precision Duelist / Counter-Striker. Relies on perfectly-timed parries. When he successfully blocks an attack, he unleashes a lightning-fast rapier combo that breaks enemy shields.", fx: "flash" },
+            { name: "Kora", title: "The Unbroken Aegis", rank: 12, spin: "Leaning on the hilt of a massive iron greatsword buried in the dirt. Selected: hoists it onto her shoulders with a fierce, ready-to-scrap smirk.", playstyle: "Frontline Tank / Disrupter. Absorbs massive punishment using hyper-armor frames. She slams her greatsword into the earth to cause AOE knockbacks, keeping enemies off your squishy mages.", fx: "impact" },
+            { name: "Valen", title: "The Paragon Senior", rank: 13, spin: "Doing one-handed pushups before flipping up. Selected: wraps his fists in a glowing aura and takes a textbook martial arts stance.", playstyle: "Combo Striker / Brawler. High-speed, fluid martial arts. He chains punches and kicks together to build up a combo meter, unleashing a devastating aura-blast at max stacks.", fx: "aura" },
+            { name: "Jaxon", title: "The Rogue Mercenary", rank: 14, spin: "Sitting on an ammo crate cleaning a high-tech rifle. Selected: stands up and aims it right at the screen with a wild, lawless grin.", playstyle: "Long-Range Marksman / Sniper. Keeps his distance at the back of the map, dealing heavy single-target damage with a high-velocity rifle and dropping explosive landmines to stop rushdown enemies.", fx: "crosshair" },
+            { name: "Orion", title: "The Star-Forged Blacksmith", rank: 15, spin: "Hammering a glowing piece of cosmic ore on an anvil. Selected: lifts a heavy, burning magma hammer and slams it down, sending sparks flying.", playstyle: "Item Enchanter / Fire Bruiser. Slams his burning magma hammer down to deal fire damage while permanently upgrading his teammates' weapons mid-battle.", fx: "sparks" },
+            { name: "Lyra", title: "The Sound-Wave Siren", rank: 16, spin: "Floating gently while tuning a crystal harp. Selected: strikes a chord that sends a visible, destructive kinetic shockwave ripping across the grass.", playstyle: "Kinetic Zoner / Healer. Uses musical soundwaves to push enemies away from her while simultaneously pulse-healing her allies with every rhythm chord struck.", fx: "wave" }
+        ],
+        rare: [
+            { name: "Leo", title: "The Eager Vanguard", rank: 17, spin: "Pleth's number-one fan trying way too hard to mimic his stance. Selected: accidentally trips over his own wooden practice sword but scrambles up quickly.", playstyle: "Basic Balanced Attacker. Standard, easy-to-learn sword combos. Good for beginners, with balanced attack and defense stats but no crazy supernatural perks.", fx: "none" },
+            { name: "Iris", title: "The Sparks of the Future", rank: 18, spin: "The young academy girl looking around nervously. Selected: squares her shoulders, pulls out a practice dagger, and takes a low-gravity stance.", playstyle: "Evasion / Speed Scout. Low damage per hit, but boasts incredibly fast movement speed. Perfect for running around traps and quickly dodging lethal boss attacks.", fx: "none" },
+            { name: "Toby", title: "The Clumsy Squire", rank: 19, spin: "Carrying a massive bundle of practice gear and popsicle sticks. Selected: drops half of them, salutes awkwardly, and draws a short-sword.", playstyle: "RNG Support / Utility. Clumsily throws items at random. He might accidentally drop a healing popsicle for your team, or trip and hurl a smoke bomb that confuses the enemy.", fx: "none" },
+            { name: "Shade", title: "The Rogue Grunt", rank: 20, spin: "A low-level shadow scout hiding under a dark hood. Selected: pulls out two basic iron daggers, his red eyes glowing faintly from the darkness.", playstyle: "Basic Dual-Wielder. Fast, low-damage dagger slashes. Weak health pool, but builds up a fast attack rhythm to clear out weak enemy minions.", fx: "none" }
+        ]
     };
 
-    // Current active enemy storage
-    let currentEnemy = null;
-
-    // 2. THE WORLD STORY NODES
-    const worldMap = {
-        intro: {
-            text: "CHAPTER 1: THE ASHEN RIDGE\n\nThe wind howls across the jagged ruins of the lower canopy. You have been tracking a rogue signatures unit for cycles. Ahead, the path splits: a narrow, shadowed cavern descent, or an exposed high ridge path patrol route.",
-            choices: [
-                { text: "Descend into the dark cavern ruins.", nextNode: "cavern_entry" },
-                { text: "Scout along the high ridge trail.", nextNode: "ridge_combat_trigger" }
-            ]
-        },
-        cavern_entry: {
-            text: "The temperature drops instantly. Dripping condensation echoes through the darkness. Hidden inside a hollow structural pipe, you spot the unmistakable blue glint of an Overcharge Node!",
-            choices: [
-                { 
-                    text: "Extract the Overcharge Node.", 
-                    action: () => {
-                        player.inventory.push("Overcharge Node");
-                        logMessage("\n[+] Acquired: Overcharge Node!");
-                    },
-                    nextNode: "cavern_deeper" 
-                },
-                { text: "Ignore it and move deeper.", nextNode: "cavern_deeper" }
-            ]
-        },
-        cavern_deeper: {
-            text: "Suddenly, heavy thuds reverberate through the floor. A rogue Scrap Drone drops from the ceiling panels, its optical sensors glowing viciously red! It blocks the only exit.",
-            choices: [
-                { 
-                    text: "ENGAGE TARGET", 
-                    action: () => { startCombat("Scrap Drone", 60, 10, "cavern_victory"); } 
-                }
-            ]
-        },
-        ridge_combat_trigger: {
-            text: "As you step onto the rocky high ridge, a sudden mechanical screech pierces the wind. A wild Cyber-Viper launches itself from the metallic crags!",
-            choices: [
-                { 
-                    text: "ENTER COMBAT", 
-                    action: () => { startCombat("Cyber-Viper", 45, 14, "ridge_victory"); } 
-                }
-            ]
-        },
-        cavern_victory: {
-            text: "The Scrap Drone explodes in a brilliant shower of sparks. Exploring its chassis, you find a path leading out to the main highway. You managed to escape the darkness safely.",
-            choices: [] // End of demo chapter
-        },
-        ridge_victory: {
-            text: "With a final decisive strike, the Cyber-Viper deactivates and falls off the cliffside into the mist. The high path is secure, offering an unhindered view of the sprawling neon city below.",
-            choices: []
-        }
+    let userState = {
+        crystals: 2500,
+        pity: 0
     };
 
-    // 3. CORE RPG ENGINE ENGINE LOGIC
-    function refreshUI() {
-        document.getElementById("char-hp").innerText = `${player.hp}/${player.maxHp}`;
-        document.getElementById("char-focus").innerText = `${player.focus}/${player.maxFocus}`;
-        document.getElementById("char-inv").innerText = player.inventory.length > 0 ? player.inventory.join(", ") : "Empty";
+    function triggerSummon() {
+        if (userState.crystals < 50) return;
+
+        userState.crystals -= 50;
+        userState.pity += 1;
+        document.getElementById("crystal-count").innerText = userState.crystals.toLocaleString();
+        document.getElementById("pity-count").innerText = `${userState.pity}/50`;
+
+        const rollBtn = document.getElementById("roll-btn");
+        rollBtn.disabled = true;
+
+        // Clear previous visual states completely
+        const container = document.getElementById("portal-container");
+        const stage = document.getElementById("display-stage");
+        const fxOverlay = document.getElementById("fx-overlay");
+        const card = document.getElementById("hero-card");
         
-        if (player.hp <= 0) {
-            document.getElementById("char-hp").classList.add("danger");
-        }
-    }
+        container.className = "";
+        stage.className = "";
+        fxOverlay.innerText = "";
+        card.style.opacity = "0";
 
-    function logMessage(text) {
-        document.getElementById("display-area").innerText += text;
-        const display = document.getElementById("display-area");
-        display.scrollTop = display.scrollHeight; // Auto-scroll
-    }
+        // Determine Rarity Block
+        let chosenRarity = "rare";
+        const diceRoll = Math.random() * 100;
 
-    function renderStory(nodeKey) {
-        const node = worldMap[nodeKey];
-        const display = document.getElementById("display-area");
-        const choicesArea = document.getElementById("choices-area");
-
-        display.innerText = node.text;
-        choicesArea.innerHTML = "";
-
-        if (node.choices.length === 0) {
-            logMessage("\n\n--- TO BE CONTINUED // SYSTEM LOCK ---");
-            return;
+        // 50-pull Hard Pity check for safety
+        if (userState.pity >= 50) {
+            chosenRarity = "mythic";
+            userState.pity = 0;
+        } else if (diceRoll <= 0.5) {
+            chosenRarity = "mythic";
+            userState.pity = 0; 
+        } else if (diceRoll <= 3.0) { // 0.5 + 2.5
+            chosenRarity = "legendary";
+        } else if (diceRoll <= 15.0) { // 3.0 + 12.0
+            chosenRarity = "epic";
         }
 
-        node.choices.forEach(choice => {
-            const btn = document.createElement("button");
-            btn.innerText = choice.text;
-            btn.classList.add("action-btn");
-            btn.addEventListener("click", () => {
-                if (choice.action) choice.action();
-                if (choice.nextNode) renderStory(choice.nextNode);
-            });
-            choicesArea.appendChild(btn);
-        });
-        refreshUI();
-    }
+        // Pull entity from database
+        const targetPool = masterRoster[chosenRarity];
+        const character = targetPool[Math.floor(Math.random() * targetPool.length)];
 
-    // 4. TURN-BASED COMBAT SUBSYSTEM
-    function startCombat(enemyName, enemyHp, enemyAtk, victoryNode) {
-        currentEnemy = { name: enemyName, hp: enemyHp, maxHp: enemyHp, attack: enemyAtk, winNode: victoryNode };
-        
-        const display = document.getElementById("display-area");
-        display.innerText = `⚠️ COMBAT INITIATED: ${currentEnemy.name} appears!\nEnemy HP: ${currentEnemy.hp}\n`;
-        
-        loopCombatTurn();
-    }
-
-    function loopCombatTurn() {
-        refreshUI();
-        const choicesArea = document.getElementById("choices-area");
-        choicesArea.innerHTML = "";
-
-        if (player.hp <= 0) {
-            logMessage("\n\n❌ CRITICAL FAILURE: Lykos has flatlined. Game Over.");
-            return;
-        }
-        if (currentEnemy.hp <= 0) {
-            logMessage(`\n\n✨ VICTORY: ${currentEnemy.name} was successfully dismantled!`);
+        // Run Cinematic Presentation Sequence
+        setTimeout(() => {
+            renderCinematicFX(character.fx, container, fxOverlay);
             
-            const advanceBtn = document.createElement("button");
-            advanceBtn.innerText = "Continue Journey";
-            advanceBtn.classList.add("action-btn");
-            advanceBtn.addEventListener("click", () => { renderStory(currentEnemy.winNode); });
-            choicesArea.appendChild(advanceBtn);
-            return;
-        }
-
-        // Action: Standard Strike
-        const strikeBtn = document.createElement("button");
-        strikeBtn.innerText = `⚔️ Strike Target (-${player.attackPower} HP)`;
-        strikeBtn.classList.add("action-btn", "combat-btn");
-        strikeBtn.addEventListener("click", () => { executeTurn("strike"); });
-        choicesArea.appendChild(strikeBtn);
-
-        // Action: Special Ability (Uses Focus)
-        const specBtn = document.createElement("button");
-        specBtn.innerText = `⚡ Neural Burst (-5 Focus / Massive DMG)`;
-        specBtn.classList.add("action-btn", "combat-btn");
-        specBtn.addEventListener("click", () => { executeTurn("special"); });
-        choicesArea.appendChild(specBtn);
-
-        // Action: Use Items if available
-        if (player.hasItem("Stamina Elixir")) {
-            const itemBtn = document.createElement("button");
-            itemBtn.innerText = "🧪 Use Stamina Elixir (+40 HP)";
-            itemBtn.classList.add("action-btn");
-            itemBtn.addEventListener("click", () => { executeTurn("item_elixir"); });
-            choicesArea.appendChild(itemBtn);
-        }
+            // Render the text metrics onto card UI
+            card.innerHTML = `
+                <span class="rarity-badge" style="background-color: var(--${chosenRarity}); color: #000;">${chosenRarity} (Rank #${character.rank})</span>
+                <div class="name-txt" style="color: var(--${chosenRarity})">${character.name}</div>
+                <div class="title-txt">"${character.title}"</div>
+                <div class="spin-box"><strong>The Spin:</strong> ${character.spin}</div>
+                <div class="playstyle-box"><strong>Playstyle Strategy:</strong> ${character.playstyle}</div>
+            `;
+            card.style.opacity = "1";
+            rollBtn.disabled = false;
+        }, 600);
     }
 
-    function executeTurn(playerAction) {
-        let playerDmg = 0;
-        let actionLog = "\n----------------------------------------";
-
-        // Player Turn phase
-        if (playerAction === "strike") {
-            playerDmg = player.attackPower + Math.floor(Math.random() * 6); // Add slight RNG variance
-            currentEnemy.hp -= playerDmg;
-            actionLog += `\n▶️ Lykos slashes the ${currentEnemy.name} dealing ${playerDmg} structural damage.`;
-        } else if (playerAction === "special") {
-            if (player.focus >= 5) {
-                player.focus -= 5;
-                playerDmg = player.attackPower * 2.5;
-                currentEnemy.hp -= playerDmg;
-                actionLog += `\n▶️ Lykos channels focus into a Neural Burst! Completely tearing down ${playerDmg} HP!`;
-            } else {
-                actionLog += `\n▶️ Focus too low! The skill misfired completely.`;
-            }
-        } else if (playerAction === "item_elixir") {
-            player.hp = Math.min(player.maxHp, player.hp + 40);
-            player.removeItem("Stamina Elixir");
-            actionLog += `\n▶️ Lykos consumes a Stamina Elixir, restoring 40 HP.`;
+    function renderCinematicFX(fxType, container, overlay) {
+        if (fxType === "blackhole") {
+            container.classList.add("shake");
+            overlay.innerText = "🌌🌀🌹";
+            setTimeout(() => container.classList.remove("shake"), 1200);
+        } else if (fxType === "glitch") {
+            container.classList.add("glitch");
+            overlay.innerText = "👁️⛓️💀";
+            setTimeout(() => container.classList.remove("glitch"), 1000);
+        } else if (fxType === "timeslow") {
+            overlay.innerText = "⏳⚖️✨";
+            document.getElementById("display-stage").style.transition = "all 2s ease";
+            document.getElementById("display-stage").style.filter = "sepia(0.8) contrast(1.2)";
+            setTimeout(() => { document.getElementById("display-stage").style.filter = "none"; }, 2000);
+        } else if (fxType === "scythe") {
+            container.classList.add("shake");
+            overlay.innerText = "⚔️🥀💀";
+            setTimeout(() => container.classList.remove("shake"), 600);
+        } else if (fxType === "darkness" || fxType === "eclipse") {
+            container.classList.add("darken");
+            overlay.innerText = "🌒🗡️👁️";
+            setTimeout(() => container.classList.remove("darken"), 1500);
+        } else if (fxType === "bluefire") {
+            overlay.innerText = "🔥🔷❄️";
+        } else if (fxType === "runes") {
+            overlay.innerText = "🛡️🔱💠";
+        } else if (fxType === "warp") {
+            overlay.innerText = "🌀💫🌌";
+        } else if (fxType === "flash" || fxType === "aura" || fxType === "impact") {
+            overlay.innerText = "⚡🌟👊";
+        } else if (fxType === "crosshair" || fxType === "sparks" || fxType === "wave") {
+            overlay.innerText = "🎯🔨🎵";
         }
-
-        // Check if enemy survived to retaliate
-        if (currentEnemy.hp > 0) {
-            let enemyDmg = currentEnemy.attack + Math.floor(Math.random() * 4);
-            player.hp -= enemyDmg;
-            actionLog += `\n💥 The ${currentEnemy.name} counters, dealing ${enemyDmg} damage to your vital core.`;
-        }
-
-        actionLog += `\n\n[ Target Status: ${Math.max(0, currentEnemy.hp)} HP remaining ]`;
-        logMessage(actionLog);
-        
-        // Loop back to update status or handle wins/losses
-        setTimeout(loopCombatTurn, 100);
     }
-
-    // Initialize first node on load
-    renderStory("intro");
 </script>
 
 </body>
